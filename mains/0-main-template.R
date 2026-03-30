@@ -45,7 +45,7 @@ source("../algorithms/blind/expand-node.R")
 # 4) Load search algorithms
 # -------------------------------------------------------------------------
 # Blind search algorithms
-source("../algorithms/blind/breadth-first-search.R")
+source("../algorithms/blind/breadth1")
 source("../algorithms/blind/depth-first-search.R")
 source("../algorithms/blind/depth-limited-search.R")
 source("../algorithms/blind/iterative-deepening-search.R")
