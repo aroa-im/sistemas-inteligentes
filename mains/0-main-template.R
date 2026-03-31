@@ -45,7 +45,7 @@ source("../algorithms/blind/expand-node.R")
 # 4) Load search algorithms
 # -------------------------------------------------------------------------
 # Blind search algorithms
-source("../algorithms/blind/breadth1")
+source("../algorithms/blind/breadth-first-search.R")
 source("../algorithms/blind/depth-first-search.R")
 source("../algorithms/blind/depth-limited-search.R")
 source("../algorithms/blind/iterative-deepening-search.R")
@@ -195,7 +195,7 @@ solve.instance <- function(file = NULL,
 # 6 steps needed to be solved
 # try(solve.instance(rows = 3, columns = 3, initial_state = c(1,2,5,3,4,8,0,6,7))) 
 # 12 steps needed to be solved
-try(solve.instance("01-loop-trap.txt")) 
+try(solve.instance("../mains/01-loop-trap.txt")) 
 
 # River Crossing
 # try(solve.instance())

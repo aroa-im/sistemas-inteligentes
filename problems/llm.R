@@ -324,14 +324,10 @@ is.applicable <- function(state, action, problem) {
       map[new_pos[1], new_pos[2]] != "#" &&
       new_pos[1] <= problem$n_rows &&
       new_pos[2] <= problem$n_columns &&
-      new_pos[2] > 0 && 
+      new_pos[2] > 0 &&
       !all(new_pos == state$pos)) {
     result <- TRUE
   }
-  
-  # TODO STUDENT:
-  # Return TRUE only if the action can be applied in this state.
-  # Example constraints: boundaries, obstacles, resource limits, etc.
   
   return(result)
 }
@@ -364,9 +360,9 @@ effect <- function(state, action, problem) {
   result <- calculate.position(state, action, problem)
   
   # cambiar el modo
-  if(action %in% directions){
+  if (action %in% directions) {
     result$mode <- "GEN"
-  }else if(action %in% rag_actions){
+  } else if (action %in% rag_actions) {
     result$mode <- action
   }
   return(result)
@@ -420,10 +416,6 @@ is.final.state <- function(state, final_state, problem) {
 #   incorrectly and return wrong results.
 # =========================================================================
 to.string <- function(state, problem) {
-  # TODO STUDENT:
-  # Generate a unique string identifier for the state.
-  # TIP: Use paste0(unlist(state), collapse = "_") to handle matrices or lists safely.
-  
   return(paste(state, collapse = ","))
 }
 
@@ -447,11 +439,16 @@ to.string <- function(state, problem) {
 get.cost <- function(action, state, problem) {
   # TODO STUDENT:
   # Return the step cost of applying the action in this state.
-  action -> modo_futuro 
-  state$mode -> modo_actual
   provider_data <-  problem$providers[[action]]
   provider_cost <- provider_data$cost
-
+  provider_lat <- provider_data$lat
+  
+  params <- problem$params
+  eur_per_sec <- params$EUR_PER_SEC
+  gen_lat <- params$GEN_LAT
+  switch_lat <- params$SWITCH_LAT
+  
+  
   all_actions <- problem$actions_possible
   directions <- c("N", "S", "E", "O", "NE", "NO", "SE", "SO")
   rag_actions <-  all_actions[(1 + length(directions)):length(all_actions)]
@@ -460,14 +457,25 @@ get.cost <- function(action, state, problem) {
   
   coste <- NULL
   
-  if(action %in% directions){ # ES GEN de * -> GEN
-    coste <- 0
-  } else if((actual_mode_is_rag_action) && (state$mode != action)){ # Es RAG pero otro de RAG -> otro RAG
-    coste<- provider_cost
-  } else if((actual_mode_is_rag_action) && (state$mode == action)) { #Es el mismo rag de RAG a mismo RAG
-    coste <- 0
-  } else if((state$mode == "GEN") && (action_is_rag_action)) { # vengo de GEN y voy a un RAG
-    coste<- provider_cost
+  if (state$mode == "GEN" && action %in% directions) {
+    # gen -> gen
+    coste <- gen_lat * eur_per_sec
+  } else if ((actual_mode_is_rag_action &&
+              (state$mode != action) &&
+              action_is_rag_action) ||
+             ((state$mode == "GEN") &&
+              action_is_rag_action)) {
+    # Rags distintos + gen a rag
+    coste <- provider_cost + (switch_lat * eur_per_sec) + (provider_lat *
+                                                             eur_per_sec)
+  } else if ((actual_mode_is_rag_action) &&
+             (state$mode == action)) {
+    #De RAG a mismo RAG
+    coste <- provider_lat * eur_per_sec
+  } else if (actual_mode_is_rag_action &&
+             action %in% directions) {
+    # rag -> gen
+    coste <- (switch_lat * eur_per_sec) + (gen_lat * eur_per_sec)
   }
   
   return(coste)
@@ -504,35 +512,44 @@ get.evaluation <- function(state, problem) {
 # print(res$current_state$pos[1]) #x
 # print(res$current_state$pos[2]) #y
 
-# print(is.applicable(res$current_state, "N", res))
 
-res <- initialize.problem("04-cost-trap.txt")
+#res <- initialize.problem("../mains/04-cost-trap.txt")
 #print(res)
 #print(to.string(res$current_state, res))
 #print(is.applicable(res$current_state, "N", res))
 #res$current_state$mode <- "GEN"
 #new_state <- is.applicable(res$current_state, "VectorDB_ECO", res)
 #new_state
-
 #print(is.final.state(res$current_state, res$state_final, res))
 #print(get.evaluation(res$current_state, res))
-print("Empieza prueba")
-res$current_state
-action <- "N"
-print(get.cost(action, res$current_state, res))
-if(is.applicable(res$current_state, action, res)) {
-  
-  res$current_state <- effect(res$current_state, action, res)
-}
-res$current_state
-is.final.state(res$current_state, res$state_final, res)
-#####################
-res$current_state
-action <- "VectorDB_ECO"
-print(get.cost(action, res$current_state, res))
-if(is.applicable(res$current_state, action, res)) {
-  
-  res$current_state <- effect(res$current_state, action, res)
-}
-res$current_state
-is.final.state(res$current_state, res$state_final, res)
+
+# print("Empieza prueba")
+# res$current_state
+# action <- "N"
+# print(get.cost(action, res$current_state, res))
+# if(is.applicable(res$current_state, action, res)) {
+#
+#   res$current_state <- effect(res$current_state, action, res)
+# }
+# res$current_state
+# is.final.state(res$current_state, res$state_final, res)
+#
+# res$current_state
+# action <- "VectorDB_ECO"
+# print(get.cost(action, res$current_state, res))
+# if(is.applicable(res$current_state, action, res)) {
+#
+#   res$current_state <- effect(res$current_state, action, res)
+# }
+# res$current_state
+# is.final.state(res$current_state, res$state_final, res)
+
+# res$current_state
+# action <- "VectorDB_PRO"
+# print(get.cost(action, res$current_state, res))
+# if(is.applicable(res$current_state, action, res)) {
+#
+#   res$current_state <- effect(res$current_state, action, res)
+# }
+# res$current_state
+# is.final.state(res$current_state, res$state_final, res)
