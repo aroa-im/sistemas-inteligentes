@@ -321,10 +321,10 @@ is.applicable <- function(state, action, problem) {
   map <- problem$map
   new_pos <- calculate.position(state, action, problem)$pos
   if (new_pos[1] > 0 &&
-      map[new_pos[1], new_pos[2]] != "#" &&
       new_pos[1] <= problem$n_rows &&
-      new_pos[2] <= problem$n_columns &&
       new_pos[2] > 0 &&
+      new_pos[2] <= problem$n_columns &&
+      map[new_pos[1], new_pos[2]] != "#" &&
       !all(new_pos == state$pos)) {
     result <- TRUE
   }
