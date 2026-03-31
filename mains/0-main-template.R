@@ -195,7 +195,7 @@ solve.instance <- function(file = NULL,
 # 6 steps needed to be solved
 # try(solve.instance(rows = 3, columns = 3, initial_state = c(1,2,5,3,4,8,0,6,7))) 
 # 12 steps needed to be solved
-try(solve.instance("../mains/01-loop-trap.txt")) 
+try(solve.instance("../mains/06-shallow-illusion.txt")) 
 
 # River Crossing
 # try(solve.instance())
