@@ -44,8 +44,8 @@ source("../algorithms/blind/expand-node.R")
 # -------------------------------------------------------------------------
 # BASE ALGORITHM:
 #source("../algorithms/informed/hill-climbing-search.R")
-source("../algorithms/informed/stochastic-hill-climbing.R")
-#source("../algorithms/informed/random-restart-hill-climbing.R")
+#source("../algorithms/informed/stochastic-hill-climbing.R")
+source("../algorithms/informed/random-restart-hill-climbing.R")
 #source("../algorithms/informed/stochastic-random-restart.R")
 #source("../algorithms/informed/beam-search.R")
 
@@ -166,7 +166,7 @@ solve.instance <- function(file,
   #run_algorithm(stochastic.hill.climbing, "Stochastic HC")
   
   # Meta-heuristics (They receive 'file' automatically thanks to the fix above)
-  #run_algorithm(random.restart.hill.climbing, "Random Restart HC (5)", restarts = 5)
+  run_algorithm(random.restart.hill.climbing, "Random Restart HC (5)", restarts = 5)
   #run_algorithm(random.restart.hill.climbing, "Random Restart HC (15)", restarts = 15)
   #run_algorithm(random.restart.hill.climbing, "Random Restart HC (15)", restarts = 30)
   
