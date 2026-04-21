@@ -1,42 +1,37 @@
 # =========================================================================
-# Greedy Best-First Search (GBFS)
+# Depth Limited Search (DLS)
 # =========================================================================
-# Greedy Best-First Search (GBFS) expands the node with the lowest heuristic 
-# value h(n). It DOES NOT consider path cost g(n) for selection, so it is 
-# neither optimal nor complete (it can get stuck in loops if no GS used).
+# Depth-Limited Search (DLS) is a depth-first search with a maximum depth limit.
+# Nodes at depth >= depth_limit are not expanded (cutoff), preventing infinite descent.
+# DLS is not optimal and may miss solutions beyond the given depth limit.
 #
 # Arguments:
 #   problem       : The problem object.
-#   max_iterations: Maximum number of iterations to prevent infinite loops.
+#   max_iterations: Maximum number of nodes to expand.
 #   count_print   : Interval for printing trace information.
-#   graph_search  : If TRUE, checks for repeated states.
+#   graph_search  : If TRUE, checks for repeated states to avoid loops.
+#   depth_limit   : Maximum depth allowed for expansion.
 # -------------------------------------------------------------------------
 # NOTE ON GRAPH SEARCH AND REPEATED STATES
 # -------------------------------------------------------------------------
 # In Tree Search (graph_search = FALSE), the same state may be generated many
-# times through different paths. This can lead to infinite loops in cyclic
-# graphs and a huge increase in the number of expanded nodes.
+# times through different paths. In DFS, this is critical because it leads 
+# to infinite loops in cyclic graphs (going deeper indefinitely).
 #
 # In Graph Search (graph_search = TRUE), we avoid expanding repeated states:
-#   - frontier_set : states that are currently in the frontier (waiting to be expanded)
-#   - expanded_set : states that have already been expanded
+#   - frontier_set : States currently in the stack (prevents cycles).
+#   - expanded_set : States already processed (prevents redundant paths).
 #
-# Although frontier is already a list of nodes, checking membership in that
-# list would be expensive (O(n)). Therefore, we use an additional hash-based
-# set (frontier_set) to test membership in O(1). This redundancy keeps GBFS
-# simple and efficient, especially in problems with many repeated states.
+# EFFICIENCY NOTE:
+# Although 'frontier' is a list/stack of nodes, checking membership in a 
+# list is expensive (O(n)). Therefore, we use an auxiliary hash-based set 
+# (frontier_set) to test membership in O(1). This redundancy keeps DLS 
+# simple and extremely fast, even with large frontiers.
 #
-# NOTE: In GBFS, repeated-state handling is "state-based" (like BFS/DFS), 
-# not "cost-based" (like UCS/A*).
-# Since GBFS orders nodes solely by the heuristic h(n), and h(n) depends 
-# only on the state itself (it is constant for a given state), we never need 
-# to re-open a state based on path cost g(n), as GBFS ignores g(n) for 
-# ordering.
-# -------------------------------------------------------------------------
-#
-# NOTE ON NODE FIELDS:
-# - node$evaluation stores h(n) (Used for ordering the frontier)
-# - node$cost stores g(n) (Calculated but NOT used for ordering)
+# THEORETICAL NOTE:
+# This "discard-if-seen" pruning strategy is correct for BFS and DFS because
+# they do not guarantee optimal cost. For optimal algorithms like UCS or A*, 
+# repeated-state handling must be cost-aware (checking g-values).
 # -------------------------------------------------------------------------
 #
 # Authors / Maintainers:
@@ -50,12 +45,14 @@
 # Educational use only — University of Deusto
 # =========================================================================
 
-greedy.best.first.search <- function(problem,
-                                     max_iterations = 1000,
-                                     count_print = 100,
-                                     graph_search = FALSE) {
+
+depth.limited.search <- function(problem,
+                                 max_iterations = 1000,
+                                 count_print = 100,
+                                 graph_search = FALSE,
+                                 depth_limit = 100) {
   
-  name_method      <- paste0("Greedy Best-First Search", ifelse(graph_search, " + GS", ""))
+  name_method      <- paste0("Depth Limited Search - Limit=", depth_limit, ifelse(graph_search, " + GS", ""))
   state_initial    <- problem$state_initial
   state_final      <- problem$state_final
   actions_possible <- problem$actions_possible
@@ -65,22 +62,23 @@ greedy.best.first.search <- function(problem,
   start_time <- Sys.time()
   
   # Root node
-  # node$evaluation stores h(n)
   node <- list(parent = NULL,
                state = state_initial,
                actions = NULL,
                depth = 0,
                cost = 0,
-               evaluation = get.evaluation(state_initial, problem))
+               evaluation = 0)
   
   frontier <- list(node)
   
-  # Graph Search: Hash sets for O(1) repeated-state pruning
+  # Graph Search: Hash sets for O(1) repeated-state checking
   if (graph_search) {
     expanded_set <- new.env(hash = TRUE, parent = emptyenv())
     frontier_set <- new.env(hash = TRUE, parent = emptyenv())
     
     sid_init <- to.string(state_initial, problem)
+    if (nchar(sid_init) == 0) stop("to.string returned empty string")
+    
     frontier_set[[sid_init]] <- TRUE
   }
   
@@ -92,43 +90,38 @@ greedy.best.first.search <- function(problem,
   
   count <- 1
   end_reason <- NULL
+  cutoff_occurred <- FALSE
   
   # Main Loop
   while (count <= max_iterations) {
     
-    # 1. Priority Queue Simulation: Sort frontier by Heuristic h(n) (Ascending)
-    if (length(frontier) > 1) {
-      evals <- sapply(frontier, function(x) x$evaluation)
-      frontier <- frontier[order(evals)]
-    }
-    
-    # Trace print
+    # Print trace
     if (count %% count_print == 0) {
       print(paste0("Iteration: ", count, ", Nodes in the frontier: ", length(frontier)), quote = FALSE)
     }
     
-    # 2. Check if Frontier is empty
+    # 1. Check if Frontier is empty
     if (length(frontier) == 0) {
       end_reason <- "Frontier"
       break
     }
     
-    # 3. Pop the lowest-heuristic node
+    # 2. Pop first node (LIFO)
     node_first <- frontier[[1]]
     frontier[[1]] <- NULL
     
-    # Graph Search maintenance (Move from Frontier set to Expanded set)
+    # Graph Search maintenance
     if (graph_search) {
       sid_first <- to.string(node_first$state, problem)
       if (!is.null(frontier_set[[sid_first]])) frontier_set[[sid_first]] <- NULL
       expanded_set[[sid_first]] <- TRUE
     }
     
-    # 4. Goal Test (At Expansion Time)
+    # 3. Goal Test
     if (is.final.state(node_first$state, state_final, problem)) {
       end_reason <- "Solution"
       
-      # Record stats for final iteration
+      # Save stats for this final iteration
       rep_iteration[count] <- count
       rep_frontier[count]  <- length(frontier)
       rep_depth[count]     <- node_first$depth
@@ -136,33 +129,41 @@ greedy.best.first.search <- function(problem,
       break
     }
     
-    # 5. Expand Node
-    successor_nodes <- expand.node(node_first, actions_possible, problem)
     nodes_added_curr <- 0
     
-    if (length(successor_nodes) > 0) {
+    # 4. Expansion Logic (with Depth Limit)
+    
+    if (node_first$depth >= depth_limit) {
+      # CUTOFF: Do not expand, but mark that we hit the limit
+      cutoff_occurred <- TRUE
       
-      # Graph Search: Filter repeated states
-      if (graph_search) {
-        valid_successors <- list()
-        
-        for (succ in successor_nodes) {
-          sid_succ <- to.string(succ$state, problem)
-          
-          # Since h(n) depends only on state, if we have seen the state, 
-          # we have seen its h(n). We can safely discard duplicates.
-          if (is.null(frontier_set[[sid_succ]]) && is.null(expanded_set[[sid_succ]])) {
-            valid_successors[[length(valid_successors) + 1]] <- succ
-            frontier_set[[sid_succ]] <- TRUE
-          }
-        }
-        successor_nodes <- valid_successors
-      }
+    } else {
+      # Normal Expansion
+      successor_nodes <- expand.node(node_first, actions_possible, problem)
       
-      # Add successors to frontier
       if (length(successor_nodes) > 0) {
-        frontier <- c(frontier, successor_nodes)
-        nodes_added_curr <- length(successor_nodes)
+        
+        # Graph Search: Filter repeated states
+        if (graph_search) {
+          valid_successors <- list()
+          
+          for (succ in successor_nodes) {
+            sid_succ <- to.string(succ$state, problem)
+            
+            # Only add if NOT in frontier AND NOT in expanded
+            if (is.null(frontier_set[[sid_succ]]) && is.null(expanded_set[[sid_succ]])) {
+              valid_successors[[length(valid_successors) + 1]] <- succ
+              frontier_set[[sid_succ]] <- TRUE
+            }
+          }
+          successor_nodes <- valid_successors
+        }
+        
+        # Add successors to the FRONT (LIFO)
+        if (length(successor_nodes) > 0) {
+          frontier <- c(successor_nodes, frontier)
+          nodes_added_curr <- length(successor_nodes)
+        }
       }
     }
     
@@ -175,9 +176,14 @@ greedy.best.first.search <- function(problem,
     count <- count + 1
   }
   
-  # Handle loop termination
+  # Handle loop termination reasons
   if (is.null(end_reason)) {
     end_reason <- "Iterations"
+  }
+  
+  # Refine end_reason: If we emptied the frontier but hit a cutoff, it's a Cutoff
+  if (end_reason == "Frontier" && cutoff_occurred) {
+    end_reason <- "Cutoff"
   }
   
   # Build final Report Data Frame
@@ -205,7 +211,13 @@ greedy.best.first.search <- function(problem,
     print("Executed Actions: ", quote = FALSE)
     print(node_first$actions, quote = FALSE)
   } else {
-    print(paste0("No Solution found. Reason: ", end_reason), quote = FALSE)
+    if (end_reason == "Frontier") {
+      print("Frontier is empty. No Solution found", quote = FALSE)
+    } else if (end_reason == "Cutoff") {
+      print("Depth limit reached (cutoff). No Solution found within the limit.", quote = FALSE)
+    } else {
+      print("Maximum Number of iterations reached. No Solution found", quote = FALSE)
+    }
   }
   
   print(paste0("* END: ", name_method), quote = FALSE)

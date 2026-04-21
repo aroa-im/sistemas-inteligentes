@@ -1,42 +1,36 @@
 # =========================================================================
-# Uniform Cost Search (UCS)
+# Depth First Search (DFS)
 # =========================================================================
-# Uniform Cost Search (UCS) expands the node with the lowest accumulated path cost g(n).
-# It is equivalent to Dijkstra's algorithm on the implicit state graph and is optimal
-# when all step costs are non-negative.
+# Depth-First Search (DFS) expands the deepest node first (LIFO order).
+# It explores one branch as far as possible before backtracking.
+# DFS is not optimal and may not be complete in infinite or cyclic search spaces.
 #
 # Arguments:
 #   problem       : The problem object.
 #   max_iterations: Maximum number of nodes to expand.
 #   count_print   : Interval for printing trace information.
-#   graph_search  : If TRUE, checks for repeated states using best g(n).
-## -------------------------------------------------------------------------
+#   graph_search  : If TRUE, checks for repeated states to avoid loops.
+# -------------------------------------------------------------------------
 # NOTE ON GRAPH SEARCH AND REPEATED STATES
 # -------------------------------------------------------------------------
 # In Tree Search (graph_search = FALSE), the same state may be generated many
-# times through different paths. This creates a redundant search tree.
+# times through different paths. In DFS, this is critical because it leads 
+# to infinite loops in cyclic graphs (going deeper indefinitely).
 #
-# In Graph Search (graph_search = TRUE), repeated-state handling MUST be
-# COST-AWARE. Unlike BFS/DFS, simply checking if a state was "visited" is 
-# not enough, because we might find a new path to the same state with a 
-# LOWER cost later.
+# In Graph Search (graph_search = TRUE), we avoid expanding repeated states:
+#   - frontier_set : States currently in the stack (prevents cycles).
+#   - expanded_set : States already processed (prevents redundant paths).
 #
-# Therefore, UCS maintains a map of the "Best Cost Found So Far":
-#   - best_g[state_id] : The lowest g(n) known for a specific state.
+# EFFICIENCY NOTE:
+# Although 'frontier' is a list/stack of nodes, checking membership in a 
+# list is expensive (O(n)). Therefore, we use an auxiliary hash-based set 
+# (frontier_set) to test membership in O(1). This redundancy keeps DFS 
+# simple and extremely fast, even with large frontiers.
 #
-# When a successor is generated:
-#   1. If state is NEW -> Add to frontier & Update best_g.
-#   2. If state represents a BETTER path (lower g) -> Add to frontier & Update best_g.
-#   3. If state represents a WORSE path -> Discard it.
-#
-# DATA STRUCTURE NOTE:
-# - 'best_g' is implemented as an R environment (Hash Table) for O(1) access.
-# - 'frontier' is a simple list sorted by cost (Priority Queue simulation).
-#
-# -------------------------------------------------------------------------
-# NOTE ON NODE FIELDS:
-# - node$evaluation stores h(n) (Calculated but NOT used for ordering)
-# - node$cost stores g(n) (Used for ordering the frontier)
+# THEORETICAL NOTE:
+# This "discard-if-seen" pruning strategy is correct for BFS and DFS because
+# they do not guarantee optimal cost. For optimal algorithms like UCS or A*, 
+# repeated-state handling must be cost-aware (checking g-values).
 # -------------------------------------------------------------------------
 #
 # Authors / Maintainers:
@@ -50,12 +44,12 @@
 # Educational use only — University of Deusto
 # =========================================================================
 
-uniform.cost.search <- function(problem,
-                                max_iterations = 1000,
-                                count_print = 100,
-                                graph_search = FALSE) {
+depth.first.search <- function(problem,
+                               max_iterations = 1000,
+                               count_print = 100,
+                               graph_search = FALSE) {
   
-  name_method      <- paste0("Uniform Cost Search", ifelse(graph_search, " + GS", ""))
+  name_method      <- paste0("Depth First Search", ifelse(graph_search, " + GS", ""))
   state_initial    <- problem$state_initial
   state_final      <- problem$state_final
   actions_possible <- problem$actions_possible
@@ -70,17 +64,23 @@ uniform.cost.search <- function(problem,
                actions = NULL,
                depth = 0,
                cost = 0,
-               evaluation = 0) # evaluation not used in UCS, but kept for structure
+               evaluation = 0)
   
   frontier <- list(node)
   
-  # Graph Search: Map of best cost g(n) found so far for each state
+  # Graph Search: Hash sets for O(1) repeated-state checking
   if (graph_search) {
-    best_g <- new.env(hash = TRUE, parent = emptyenv())
-    best_g[[to.string(state_initial, problem)]] <- 0
+    expanded_set <- new.env(hash = TRUE, parent = emptyenv())
+    frontier_set <- new.env(hash = TRUE, parent = emptyenv())
+    
+    sid_init <- to.string(state_initial, problem)
+    if (nchar(sid_init) == 0) stop("to.string returned empty string")
+    
+    frontier_set[[sid_init]] <- TRUE
   }
   
   # Pre-allocate report vectors for performance
+  # (Replaces the slow list-of-lists approach)
   rep_iteration <- numeric(max_iterations)
   rep_frontier  <- numeric(max_iterations)
   rep_depth     <- numeric(max_iterations)
@@ -92,40 +92,29 @@ uniform.cost.search <- function(problem,
   # Main Loop
   while (count <= max_iterations) {
     
-    # 1. Priority Queue Simulation: Sort frontier by Cost (ascending)
-    # Note: In production code, a Heap/PriorityQueue structure is preferred (O(log N)).
-    # Here, full sorting is O(N log N).
-    if (length(frontier) > 1) {
-      costs <- sapply(frontier, function(x) x$cost)
-      frontier <- frontier[order(costs)]
-    }
-    
     # Print trace
     if (count %% count_print == 0) {
       print(paste0("Iteration: ", count, ", Nodes in the frontier: ", length(frontier)), quote = FALSE)
     }
     
-    # 2. Check if Frontier is empty
+    # 1. Check if Frontier is empty
     if (length(frontier) == 0) {
       end_reason <- "Frontier"
       break
     }
     
-    # 3. Pop the lowest-cost node
+    # 2. Pop first node (LIFO behavior depends on how we ADD successors later)
     node_first <- frontier[[1]]
     frontier[[1]] <- NULL
     
-    # Graph Search: Lazy Deletion check
-    # If we found a cheaper path to this state after adding this node to the queue,
-    # this node is now obsolete. Skip it.
+    # Graph Search maintenance (Move from Frontier set to Expanded set)
     if (graph_search) {
       sid_first <- to.string(node_first$state, problem)
-      if (node_first$cost > best_g[[sid_first]]) {
-        next 
-      }
+      if (!is.null(frontier_set[[sid_first]])) frontier_set[[sid_first]] <- NULL
+      expanded_set[[sid_first]] <- TRUE
     }
     
-    # 4. Goal Test (Must be done at expansion time for optimality)
+    # 3. Goal Test
     if (is.final.state(node_first$state, state_final, problem)) {
       end_reason <- "Solution"
       
@@ -137,33 +126,31 @@ uniform.cost.search <- function(problem,
       break
     }
     
-    # 5. Expand Node
+    # 4. Expand Node
     successor_nodes <- expand.node(node_first, actions_possible, problem)
     nodes_added_curr <- 0
     
     if (length(successor_nodes) > 0) {
       
-      # Graph Search: Cost-Aware Filtering
+      # Graph Search: Filter repeated states
       if (graph_search) {
         valid_successors <- list()
         
         for (succ in successor_nodes) {
           sid_succ <- to.string(succ$state, problem)
-          new_g    <- succ$cost
-          old_g    <- best_g[[sid_succ]]
           
-          # Add if state is new OR if we found a strictly better path
-          if (is.null(old_g) || new_g < old_g) {
-            best_g[[sid_succ]] <- new_g
+          # Only add if NOT in frontier AND NOT in expanded
+          if (is.null(frontier_set[[sid_succ]]) && is.null(expanded_set[[sid_succ]])) {
             valid_successors[[length(valid_successors) + 1]] <- succ
+            frontier_set[[sid_succ]] <- TRUE
           }
         }
         successor_nodes <- valid_successors
       }
       
-      # Add successors to frontier
+      # Add successors to the FRONT of the frontier (LIFO / Stack)
       if (length(successor_nodes) > 0) {
-        frontier <- c(frontier, successor_nodes)
+        frontier <- c(successor_nodes, frontier)
         nodes_added_curr <- length(successor_nodes)
       }
     }
@@ -183,6 +170,7 @@ uniform.cost.search <- function(problem,
   }
   
   # Build final Report Data Frame
+  # Filter only the valid rows (where iteration > 0)
   valid_idx <- rep_iteration > 0
   
   report <- data.frame(iteration            = rep_iteration[valid_idx],

@@ -37,7 +37,7 @@ if (requireNamespace("rstudioapi", quietly = TRUE)) {
 # -------------------------------------------------------------------------
 # 3) Load algorithm utilities
 # -------------------------------------------------------------------------
-#source("../algorithms/blind/expand-node.R")
+source("../algorithms/blind/expand-node.R")
 
 # -------------------------------------------------------------------------
 # 4) Load Local Search Algorithms
@@ -163,7 +163,7 @@ solve.instance <- function(file,
   
   # Basic Algorithms (They receive 'problem')
   #run_algorithm(hill.climbing.search, "Hill Climbing")
-  run_algorithm(stochastic.hill.climbing, "Stochastic HC")
+  #run_algorithm(stochastic.hill.climbing, "Stochastic HC")
   
   # Meta-heuristics (They receive 'file' automatically thanks to the fix above)
   #run_algorithm(random.restart.hill.climbing, "Random Restart HC (5)", restarts = 5)
@@ -213,6 +213,6 @@ solve.instance <- function(file,
 # -------------------------------------------------------------------------
 # 8) Experiment block
 # -------------------------------------------------------------------------
-try(solve.instance(file = "../data/padding/basic.txt"))
+#try(solve.instance(file = "../data/padding/basic.txt"))
 #try(solve.instance(file = "../data/padding/trade.txt"))
-#try(solve.instance(file = "../data/padding/trap.txt"))
+try(solve.instance(file = "../data/padding/trap.txt"))
