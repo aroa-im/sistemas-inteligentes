@@ -32,6 +32,8 @@ hill.climbing.search <- function(problem,
                                  count_print = 5) {
   
   name_method      <- "Hill Climbing Search"
+  state_initial    <- problem$state_initial
+  actions_possible <- problem$actions_possible
   
   print(paste0("* START: ", name_method), quote = FALSE)
   start_time <- Sys.time()
@@ -133,6 +135,7 @@ hill.climbing.search <- function(problem,
     print(paste0("Stopped: ", end_reason), quote = FALSE)
   }
   
+  print(paste0("Initial State: ", to.string(state = node_current$state, problem = problem)), quote = FALSE)
   print(paste0("Final State: ", to.string(state = node_current$state, problem = problem)), quote = FALSE)
   print(paste0("* END: ", name_method), quote = FALSE)
   

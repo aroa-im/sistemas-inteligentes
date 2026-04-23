@@ -43,7 +43,7 @@ source("../algorithms/blind/expand-node.R")
 # 4) Load Local Search Algorithms
 # -------------------------------------------------------------------------
 # BASE ALGORITHM:
-#source("../algorithms/informed/hill-climbing-search.R")
+source("../algorithms/informed/hill-climbing-search.R")
 #source("../algorithms/informed/stochastic-hill-climbing.R")
 source("../algorithms/informed/random-restart-hill-climbing.R")
 #source("../algorithms/informed/stochastic-random-restart.R")
@@ -162,7 +162,7 @@ solve.instance <- function(file,
   # ---------------------------------------------------------
   
   # Basic Algorithms (They receive 'problem')
-  #run_algorithm(hill.climbing.search, "Hill Climbing")
+  # run_algorithm(hill.climbing.search, "Hill Climbing")
   #run_algorithm(stochastic.hill.climbing, "Stochastic HC")
   
   # Meta-heuristics (They receive 'file' automatically thanks to the fix above)
