@@ -122,6 +122,7 @@ hill.climbing.search <- function(problem,
   result <- list()
   result$name       <- name_method
   result$runtime    <- end_time - start_time
+  result$state_initial <- state_initial
   result$node_final <- node_current
   result$report     <- report
   result$end_reason <- end_reason
@@ -135,7 +136,6 @@ hill.climbing.search <- function(problem,
     print(paste0("Stopped: ", end_reason), quote = FALSE)
   }
   
-  print(paste0("Initial State: ", to.string(state = node_current$state, problem = problem)), quote = FALSE)
   print(paste0("Final State: ", to.string(state = node_current$state, problem = problem)), quote = FALSE)
   print(paste0("* END: ", name_method), quote = FALSE)
   

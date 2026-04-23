@@ -107,6 +107,7 @@ stochastic.hill.climbing <- function(problem,
   result <- list()
   result$name       <- name_method
   result$runtime    <- end_time - start_time
+  result$state_initial <- state_initial
   result$node_final <- node_current
   result$report     <- report
   result$end_reason <- end_reason

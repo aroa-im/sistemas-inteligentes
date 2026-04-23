@@ -286,9 +286,11 @@ local.analyze.results <- function(results,
       }
     }
     
-    # Initial State String
+    # Initial State String (prefer the one stored in each run result)
     init_state_str <- "?"
-    if (!is.null(problem$state_initial)) {
+    if (!is.null(result$state_initial)) {
+      init_state_str <- to.string(result$state_initial, problem)
+    } else if (!is.null(problem$state_initial)) {
       init_state_str <- to.string(problem$state_initial, problem)
     }
     
