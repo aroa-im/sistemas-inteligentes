@@ -47,7 +47,7 @@ source("../algorithms/informed/hill-climbing-search.R")
 source("../algorithms/informed/stochastic-hill-climbing.R")
 source("../algorithms/informed/random-restart-hill-climbing.R")
 source("../algorithms/informed/stochastic-random-restart.R")
-#source("../algorithms/informed/beam-search.R")
+source("../algorithms/informed/beam-search.R")
 
 # -------------------------------------------------------------------------
 # 5) Load result analysis utilities
@@ -171,12 +171,12 @@ solve.instance <- function(file,
   #run_algorithm(random.restart.hill.climbing, "Random Restart HC (15)", restarts = 30)
   
   # -- Stochastic Random Restart --
-  run_algorithm(stochastic.random.restart, "Stochastic RR HC (5)", restarts = 5)
+  #run_algorithm(stochastic.random.restart, "Stochastic RR HC (5)", restarts = 5)
   #run_algorithm(stochastic.random.restart, "Stochastic RR HC (10)", restarts = 15)
   #run_algorithm(stochastic.random.restart, "Stochastic RR HC (15)", restarts = 30)
   
   # -- Local Beam Search --
-  #run_algorithm(local.beam.search, "Beam Search (3 beams)", beams = 3)
+  run_algorithm(local.beam.search, "Beam Search (3 beams)", beams = 3)
   #run_algorithm(local.beam.search, "Beam Search (5 beams)", beams = 5)
   #run_algorithm(local.beam.search, "Beam Search (10 beams)", beams = 10)
   
