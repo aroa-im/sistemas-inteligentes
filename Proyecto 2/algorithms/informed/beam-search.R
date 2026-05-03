@@ -17,9 +17,17 @@ local.beam.search <- function(problem,
   print(paste0("* START: ", name_method), quote = FALSE)
   start_time <- Sys.time()
   
+  rep_iteration <- numeric(max_iterations)
+  rep_eval_current <- numeric(max_iterations)
+  
   count <- 1
   
   while (count <= max_iterations) {
+    # Registrar la mejor evaluación actual de la población de beams
+    current_evals <- sapply(vector, function(x) x$evaluation)
+    rep_iteration[count] <- count
+    rep_eval_current[count] <- min(current_evals)
+    
     sucesores <- list()
     
     # Expandir cada beam
@@ -52,11 +60,16 @@ local.beam.search <- function(problem,
   
   end_time <- Sys.time()
   
+  valid_idx <- rep_iteration > 0
+  report <- data.frame(Iteration    = rep_iteration[valid_idx],
+                       Eval_Current = rep_eval_current[valid_idx])
+  
   result <- list()
   result$name       <- name_method
   result$runtime    <- end_time - start_time
   result$state_initial <- state_initial
   result$node_final <- vector[[1]]
+  result$report     <- report
   result$end_reason <- "Iterations"
   
   print(paste0(
