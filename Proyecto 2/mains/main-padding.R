@@ -162,7 +162,7 @@ solve.instance <- function(file,
   # ---------------------------------------------------------
   
   # Basic Algorithms (They receive 'problem')
-  # run_algorithm(hill.climbing.search, "Hill Climbing")
+  #run_algorithm(hill.climbing.search, "Hill Climbing")
   #run_algorithm(stochastic.hill.climbing, "Stochastic HC")
   
   # Meta-heuristics (They receive 'file' automatically thanks to the fix above)
@@ -213,6 +213,6 @@ solve.instance <- function(file,
 # -------------------------------------------------------------------------
 # 8) Experiment block
 # -------------------------------------------------------------------------
-#try(solve.instance(file = "../data/padding/basic.txt"))
+try(solve.instance(file = "../data/padding/basic.txt"))
 #try(solve.instance(file = "../data/padding/trade.txt"))
-try(solve.instance(file = "../data/padding/trap.txt"))
+#try(solve.instance(file = "../data/padding/trap.txt"))
