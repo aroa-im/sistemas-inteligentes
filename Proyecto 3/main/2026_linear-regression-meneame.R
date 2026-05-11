@@ -36,7 +36,8 @@ source("linear-regression-utils.R")
 # READ AND PREPARE DATA
 #-----------------------
 # Read data
-data <- read.csv(file="../data/2026_meneame-news.csv", sep=",", header = TRUE)
+data_original <- read.csv(file="../data/2026_meneame-news.csv", sep=",", header = TRUE)
+data <- data_original
 
 # Remove non-numerical columns and label column (Project 4)
 data$Texto <- NULL
@@ -109,11 +110,11 @@ diff_com <- best_test_data_com$Comentarios - best_prediction_com
 
 top5_pos_com_idx <- order(diff_com, decreasing = TRUE)[1:5]
 print("Top 5 noticias con mayor diferencia positiva (Real > Predicción) [Comentarios]:")
-print(best_test_data_com[top5_pos_com_idx, ])
+print(data_original$Texto[as.numeric(rownames(best_test_data_com[top5_pos_com_idx, ]))])
 
 top5_neg_com_idx <- order(diff_com, decreasing = FALSE)[1:5]
 print("Top 5 noticias con mayor diferencia negativa (Real < Predicción) [Comentarios]:")
-print(best_test_data_com[top5_neg_com_idx, ])
+print(data_original$Texto[as.numeric(rownames(best_test_data_com[top5_neg_com_idx, ]))])
 
 # Show the Residual Plot
 plot.model.residuals(best_test_data_com$Comentarios, best_prediction_com, "Comentarios")
@@ -159,11 +160,11 @@ diff_cli <- best_test_data_cli$Clicks - best_prediction_cli
 
 top5_pos_cli_idx <- order(diff_cli, decreasing = TRUE)[1:5]
 print("Top 5 noticias con mayor diferencia positiva (Real > Predicción) [Clicks]:")
-print(best_test_data_cli[top5_pos_cli_idx, ])
+print(data_original$Texto[as.numeric(rownames(best_test_data_cli[top5_pos_cli_idx, ]))])
 
 top5_neg_cli_idx <- order(diff_cli, decreasing = FALSE)[1:5]
 print("Top 5 noticias con mayor diferencia negativa (Real < Predicción) [Clicks]:")
-print(best_test_data_cli[top5_neg_cli_idx, ])
+print(data_original$Texto[as.numeric(rownames(best_test_data_cli[top5_neg_cli_idx, ]))])
 
 # Show the Residual Plot
 plot.model.residuals(best_test_data_cli$Clicks, best_prediction_cli, "Clicks")

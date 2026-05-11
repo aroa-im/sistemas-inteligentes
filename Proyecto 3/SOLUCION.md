@@ -57,17 +57,31 @@ Las palabras casi irrelevantes o que restan de manera ínfima:
 
 **Comentarios:**
 1.  **Top 5 con diferencia positiva (Real > Predicción):** Instancias donde la realidad superó con creces lo que el modelo dictaminó. 
-    *   Ejemplo: El índice Nº 358 logró 128 comentarios, pero carecía de "buzzwords" típicas (sólo tenía la palabra *'sistema'*).
-    *   Noticias `358`, `353`, `211`, `385`, `505`. (Comentarios reales de 111 a 161 superando enormemente los cálculos).
+    1. *El Frente Amplio propuesto por Rufián se convertiría...* (Carecía de 'buzzwords' pero tuvo 128 coms).
+    2. *Ayuso anuncia la bonificación del 100% del Impuesto...* (111 coms).
+    3. *Suecia expulsará a los extranjeros que no alcancen...*
+    4. *Oído en la tertulia de 'El Hormiguero'...*
+    5. *La lancha de EE.UU. interceptada en Cuba...*
 2.  **Top 5 con diferencia negativa (Real < Predicción):** Artículos donde el modelo predijo masiva polarización de comentarios debido a palabras fuertes, y acabaron siendo un fracaso rotundo (fueron ignorados por los usuarios).
-    *   Ejemplo: El índice Nº 238 combinó `millones`, `pp` y `empresa` –que suelen ser muy polémicas– pero paradójicamente no generó impacto real en la comunidad (apenas 44 comentarios).
-    *   Noticias `132`, `217`, `512`, `79`, `238`. (Todas recolectaron 44 o menos comentarios).
+    1. *“La Junta de Paz de Trump para Gaza es repulsiva”...* (Apenas obtuvo 8~17 comentarios pese a las fuertes palabras).
+    2. *Represalia administrativa: el Gobierno y la Generalitat acosan...*
+    3. *Antelo, expulsado del Grupo de Vox...*
+    4. *Preguntitas sobre dios, de atahualpa yupanqui...*
+    5. *La fiesta de los directivos de Acciona con los concejales del PP...*
 
 **Clicks:**
 1.  **Top 5 con diferencia positiva (Real > Predicción):**
-    *   La noticia índice Nº 421 ostenta el récord absoluto de visitas indetectadas. Llegó a **6251 clicks** en base a palabras como `historia` y `si`. Las variables `116` (5208 clicks), `360`, `129` y `324` completan este top evidenciando que el clickbait puro no depende tanto de la economía sino a apelaciones "personales/narrativas".
+    1. *El despido de Hacendado...* (¡Llegó a más de 6000 clicks! Superó enormemente las expectativas sin política directa).
+    2. *Moltbot: la historia de 72 horas que acabó en estafa...* (Supera los 5000 clicks).
+    3. *Corrido | España le dijo no a Trump...*
+    4. *Recuperan imágenes de Ayuso reconociendo que no es católica...*
+    5. *Cinco curiosidades divertidas y poco conocidas de la historia de los CD...*
 2.  **Top 5 con diferencia negativa (Real < Predicción):**
-    *   La noticia índice Nº 389 es la mayor decepción del modelo. Mezclaba la palabra clickbait `menos` y falló. De igual forma las noticias `231`, `361`, `152` y `372` apenas consiguieron entre 250 y 982 clicks cuando las variables sugerían algo mucho más explosivo.
+    1. *La UCO guarda silencio sobre por qué no reclamaron las cuentas...* (Falló notablemente, quedó por debajo de 900 clicks).
+    2. *EEUU dice que la ambición de la UE de reducir la dependencia...*
+    3. *“La Junta de Paz de Trump para Gaza es repulsiva”...*
+    4. *Robert Silverberg - Un escritor imprescindible en la ciencia ficción...*
+    5. *La historia detrás "La voz de Hind Rajab"...*
 
 ### Generación automática de noticias
 Se han generado 1000 vectores sintéticos de 50 slots conformados exclusivamente por 5 palabras con valor igual a 1. Ambos modelos han procesado los vectores:
