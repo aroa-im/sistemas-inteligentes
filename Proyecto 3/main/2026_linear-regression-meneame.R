@@ -58,15 +58,18 @@ data_clicks$Comentarios <- NULL
 print.data.summary(data_comentarios)
 # Print data correlations
 print.data.correlations(data_comentarios, "Comentarios")
-# Plot data distribution
-plot.data.distribution(data_comentarios, "Comentarios")
-plot.data.distribution(data_clicks, "Clicks")
+
+# Plot data distribution is commented out for this specific dataset
+# because attempting to plot a grid for 50 independent TF-IDF variables
+# causes an "Error in plot.new(): figure margins too large" in the R window.
+# plot.data.distribution(data_comentarios, "Comentarios")
+# plot.data.distribution(data_clicks, "Clicks")
 
 #-----------------------------------
 # GENERATE AND ANALYZE LINEAR MODEL (COMENTARIOS)
 #-----------------------------------
 # Percentage of training examples
-training_p <- 0.8
+training_p <- 0.7
 
 best_mae_com <- Inf
 best_model_com <- NULL
@@ -108,16 +111,42 @@ print(paste0("- Best Mean Absolute Error: ", round(best_mae_com, 4)))
 summary(best_model_com)
 print.model.summary(best_model_com)
 
-# Identify top 5 positive and negative differences
+# 1 y 2. Identificar las palabras con mayor y menor coeficiente negativo
+coefs_com <- coef(best_model_com)[-1] # Excluir el Intercept ("Intercepto")
+coefs_com_neg <- coefs_com[!is.na(coefs_com) & coefs_com < 0]
+
+print("1. Top 10 palabras con MAYOR coeficiente negativo [Comentarios] (más lejos de 0):")
+print(head(sort(coefs_com_neg, decreasing = FALSE), 10))
+
+print("2. Top 10 palabras con MENOR coeficiente negativo [Comentarios] (más cerca de 0):")
+print(head(sort(coefs_com_neg, decreasing = TRUE), 10))
+
+# 3. Identificar las 10 noticias más "sorprendentes"
 diff_com <- best_test_data_com$Comentarios - best_prediction_com
 
 top5_pos_com_idx <- order(diff_com, decreasing = TRUE)[1:5]
-print("Top 5 noticias con mayor diferencia positiva (Real > Predicción) [Comentarios]:")
+print("3a. Las 5 con mayor diferencia positiva (Real > Predicción) [Comentarios]:")
 print(data_original$Texto[as.numeric(rownames(best_test_data_com[top5_pos_com_idx, ]))])
 
 top5_neg_com_idx <- order(diff_com, decreasing = FALSE)[1:5]
-print("Top 5 noticias con mayor diferencia negativa (Real < Predicción) [Comentarios]:")
+print("3b. Las 5 con mayor diferencia negativa (Real < Predicción) [Comentarios]:")
 print(data_original$Texto[as.numeric(rownames(best_test_data_com[top5_neg_com_idx, ]))])
+
+# Mejora del modelo eliminando variables menos relevantes (p-value alto)
+print("--- PRUEBA DE MEJORA DEL MODELO (COMENTARIOS) ---")
+summary_com <- summary(best_model_com)
+p_values_com <- summary_com$coefficients[-1, "Pr(>|t|)"]
+significant_vars_com <- names(p_values_com[p_values_com < 0.10]) # Consideramos relevantes las < 0.10
+
+if (length(significant_vars_com) > 0) {
+  formula_improved_com <- as.formula(paste("Comentarios ~", paste(significant_vars_com, collapse = " + ")))
+  model_improved_com <- lm(formula = formula_improved_com, data = training_data_com)
+  prediction_improved_com <- predict(model_improved_com, best_test_data_com)
+  mae_improved_com <- mean(abs(prediction_improved_com - best_test_data_com$Comentarios), na.rm = TRUE)
+  print(paste0("MAE modelo original: ", round(best_mae_com, 4)))
+  print(paste0("MAE modelo simplificado: ", round(mae_improved_com, 4)))
+  print(if(mae_improved_com < best_mae_com) "¡El modelo MEJORÓ al eliminar las variables irrelevantes!" else "El modelo NO mejoró al quitar variables.")
+}
 
 # Show the Residual Plot
 plot.model.residuals(best_test_data_com$Comentarios, best_prediction_com, "Comentarios")
@@ -158,16 +187,42 @@ print(paste0("- Best Mean Absolute Error: ", round(best_mae_cli, 4)))
 summary(best_model_cli)
 print.model.summary(best_model_cli)
 
-# Identify top 5 positive and negative differences
+# 1 y 2. Identificar las palabras con mayor y menor coeficiente negativo
+coefs_cli <- coef(best_model_cli)[-1]
+coefs_cli_neg <- coefs_cli[!is.na(coefs_cli) & coefs_cli < 0]
+
+print("1. Top 10 palabras con MAYOR coeficiente negativo [Clicks] (más lejos de 0):")
+print(head(sort(coefs_cli_neg, decreasing = FALSE), 10))
+
+print("2. Top 10 palabras con MENOR coeficiente negativo [Clicks] (más cerca de 0):")
+print(head(sort(coefs_cli_neg, decreasing = TRUE), 10))
+
+# 3. Identificar las 10 noticias más "sorprendentes"
 diff_cli <- best_test_data_cli$Clicks - best_prediction_cli
 
 top5_pos_cli_idx <- order(diff_cli, decreasing = TRUE)[1:5]
-print("Top 5 noticias con mayor diferencia positiva (Real > Predicción) [Clicks]:")
+print("3a. Las 5 con mayor diferencia positiva (Real > Predicción) [Clicks]:")
 print(data_original$Texto[as.numeric(rownames(best_test_data_cli[top5_pos_cli_idx, ]))])
 
 top5_neg_cli_idx <- order(diff_cli, decreasing = FALSE)[1:5]
-print("Top 5 noticias con mayor diferencia negativa (Real < Predicción) [Clicks]:")
+print("3b. Las 5 con mayor diferencia negativa (Real < Predicción) [Clicks]:")
 print(data_original$Texto[as.numeric(rownames(best_test_data_cli[top5_neg_cli_idx, ]))])
+
+# Mejora del modelo eliminando variables menos relevantes (p-value alto)
+print("--- PRUEBA DE MEJORA DEL MODELO (CLICKS) ---")
+summary_cli <- summary(best_model_cli)
+p_values_cli <- summary_cli$coefficients[-1, "Pr(>|t|)"]
+significant_vars_cli <- names(p_values_cli[p_values_cli < 0.10])
+
+if (length(significant_vars_cli) > 0) {
+  formula_improved_cli <- as.formula(paste("Clicks ~", paste(significant_vars_cli, collapse = " + ")))
+  model_improved_cli <- lm(formula = formula_improved_cli, data = training_data_cli)
+  prediction_improved_cli <- predict(model_improved_cli, best_test_data_cli)
+  mae_improved_cli <- mean(abs(prediction_improved_cli - best_test_data_cli$Clicks), na.rm = TRUE)
+  print(paste0("MAE modelo original: ", round(best_mae_cli, 4)))
+  print(paste0("MAE modelo simplificado: ", round(mae_improved_cli, 4)))
+  print(if(mae_improved_cli < best_mae_cli) "¡El modelo MEJORÓ al eliminar las variables irrelevantes!" else "El modelo NO mejoró al quitar variables.")
+}
 
 # Show the Residual Plot
 plot.model.residuals(best_test_data_cli$Clicks, best_prediction_cli, "Clicks")

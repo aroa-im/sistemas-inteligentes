@@ -18,10 +18,12 @@ Ambos problemas presentan un comportamiento altamente no-lineal y con gran canti
 
 ### Justificación de los datos utilizados para generar los modelos
 Para generar los modelos se procedió a **eliminar la variable `Texto`** (ya que la regresión no procesa texto natural sin tratar) y la variable **`Etiqueta`** (cuya naturaleza es para clasificación en el siguiente proyecto).
-Se utilizaron exclusivamente las 50 características numéricas provenientes del TF-IDF (frecuencia de palabras relevantes).
+Se utilizaron exclusivamente las 50 características numéricas provenientes del TF-IDF (frecuencia de palabras relevantes). No se graficaron sus correlaciones conjuntas porque la librería de imagen colapsa por márgenes con tantas dimensiones (`plot.new margins too large`).
+
 Además, para evitar el *Target Leakage* (fuga de información), el dataset se dividió en dos:
 *   Modelo Comentarios: Se borró la columna "Clicks".
 *   Modelo Clicks: Se borró la columna "Comentarios".
+El `train_data` en cada pasada de los 10 modelos se nutrió de particiones holdup de un tamaño del **70%**.
 
 ---
 
@@ -38,6 +40,10 @@ Además, para evitar el *Target Leakage* (fuga de información), el dataset se d
 *   **Coeficientes y relevancia:**
     *   *Variables relevantes:* `cómo` (2187.25), `menos` (1270.43), `según` (-1280.84), `israel` (-991.25), `dos` (-952.76).
     *   *Significatividad estadística:* Solo `cómo`, `menos`, `según` e `israel` lograron significancia (p < 0.05). Refleja que las palabras de formato "clickbait" relativas a guías ("cómo...") incitan fuertemente el interés del usuario por abrir la noticia.
+
+### Simplificación del modelo (P-Values)
+Se realizó una comprobación aislando los coeficientes p-value (`< 0.10`) para quitar las palabras basura o carentes de significado estadístico.
+* Al simplificar el modelo usando pocos coeficientes, el MAE en Comentarios o Clicks suele estabilizarse. Al forzar solo los pesos con valor de varianza validada, el modelo se volvió algo más robusto contra valores atípicos del set de test de 30%.
 
 ---
 
