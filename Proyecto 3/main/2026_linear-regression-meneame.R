@@ -58,6 +58,9 @@ data_clicks$Comentarios <- NULL
 print.data.summary(data_comentarios)
 # Print data correlations
 print.data.correlations(data_comentarios, "Comentarios")
+# Plot data distribution
+plot.data.distribution(data_comentarios, "Comentarios")
+plot.data.distribution(data_clicks, "Clicks")
 
 #-----------------------------------
 # GENERATE AND ANALYZE LINEAR MODEL (COMENTARIOS)
@@ -76,23 +79,23 @@ for (i in 1:10) {
   training_samples <- createDataPartition(y = data_comentarios$Comentarios, p = training_p, list = FALSE)
   
   # Split training and test data
-  training_data <- data_comentarios[training_samples, ]
-  test_data     <- data_comentarios[-training_samples, ]
+  training_data_com <- data_comentarios[training_samples, ]
+  test_data_com     <- data_comentarios[-training_samples, ]
   
   # Create Linear Model predicting 'Comentarios' using all other available features
-  model <- lm(formula = Comentarios ~ ., data = training_data)
+  model_com <- lm(formula = Comentarios ~ ., data = training_data_com)
   
   # Make predictions using the test data
-  prediction <- predict(model, test_data)
+  prediction_com <- predict(model_com, test_data_com)
   
   # Calculate Mean Absolute Error (MAE)
-  mean_avg_error <- mean(abs(prediction - test_data$Comentarios), na.rm = TRUE)
+  mean_avg_error_com <- mean(abs(prediction_com - test_data_com$Comentarios), na.rm = TRUE)
   
-  if (mean_avg_error < best_mae_com) {
-    best_mae_com <- mean_avg_error
-    best_model_com <- model
-    best_test_data_com <- test_data
-    best_prediction_com <- prediction
+  if (mean_avg_error_com < best_mae_com) {
+    best_mae_com <- mean_avg_error_com
+    best_model_com <- model_com
+    best_test_data_com <- test_data_com
+    best_prediction_com <- prediction_com
   }
 }
 
@@ -131,18 +134,18 @@ best_prediction_cli <- NULL
 for (i in 1:10) {
   training_samples <- createDataPartition(y = data_clicks$Clicks, p = training_p, list = FALSE)
   
-  training_data <- data_clicks[training_samples, ]
-  test_data     <- data_clicks[-training_samples, ]
+  training_data_cli <- data_clicks[training_samples, ]
+  test_data_cli     <- data_clicks[-training_samples, ]
   
-  model <- lm(formula = Clicks ~ ., data = training_data)
-  prediction <- predict(model, test_data)
-  mean_avg_error <- mean(abs(prediction - test_data$Clicks), na.rm = TRUE)
+  model_cli <- lm(formula = Clicks ~ ., data = training_data_cli)
+  prediction_cli <- predict(model_cli, test_data_cli)
+  mean_avg_error_cli <- mean(abs(prediction_cli - test_data_cli$Clicks), na.rm = TRUE)
   
-  if (mean_avg_error < best_mae_cli) {
-    best_mae_cli <- mean_avg_error
-    best_model_cli <- model
-    best_test_data_cli <- test_data
-    best_prediction_cli <- prediction
+  if (mean_avg_error_cli < best_mae_cli) {
+    best_mae_cli <- mean_avg_error_cli
+    best_model_cli <- model_cli
+    best_test_data_cli <- test_data_cli
+    best_prediction_cli <- prediction_cli
   }
 }
 
